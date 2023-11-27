@@ -1,13 +1,26 @@
 <script lang="ts">
-  import Counter from './lib/Counter.svelte'
+    import PeopleList from './lib/PeopleList.svelte';
+	import AssignButton from './lib/AssignButton.svelte';
+	import { get_decoded_assignment } from './lib/yaarrg';
+	const path_name = window.location.pathname;
+	let assignment: null | string = null;
+	if (path_name.length > 1 && path_name.split('/').length == 3) {
+		console.log(path_name.slice(1));
+		assignment = get_decoded_assignment(path_name.slice(1));
+	}
 </script>
 
 <main>
-  <h1>YAARRG</h1>
+  	<h1>YAARRG</h1>
 
-  <div class="card">
-    <Counter />
-  </div>
+	{#if assignment !== null}
+		<p>Assignment: {assignment}</p>
+	{:else}
+		<div >
+			<PeopleList />
+			<AssignButton />
+		</div>
+	{/if}
 </main>
 
 <style>
