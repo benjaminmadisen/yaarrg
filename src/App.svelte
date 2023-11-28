@@ -1,26 +1,30 @@
 <script lang="ts">
+    import { people } from './lib/yaarrg';
     import PeopleList from './lib/PeopleList.svelte';
 	import AssignButton from './lib/AssignButton.svelte';
-	import { get_decoded_assignment } from './lib/yaarrg';
+    import HeaderBar from './lib/HeaderBar.svelte';
+    import Assignment from './lib/Assignment.svelte';
+    import FooterBar from './lib/FooterBar.svelte';
+    import Description from './lib/Description.svelte';
 	const path_name = window.location.pathname;
-	let assignment: null | string = null;
+	let show_assignment: boolean = false;
 	if (path_name.length > 1 && path_name.split('/').length == 3) {
-		console.log(path_name.slice(1));
-		assignment = get_decoded_assignment(path_name.slice(1));
+		show_assignment = true;
 	}
 </script>
 
 <main>
-  	<h1>YAARRG</h1>
-
-	{#if assignment !== null}
-		<p>Assignment: {assignment}</p>
+	<HeaderBar />
+	{#if show_assignment}
+		<Assignment />
 	{:else}
-		<div >
-			<PeopleList />
+		<Description />
+		<PeopleList />
+		{#if $people.length > 0}
 			<AssignButton />
-		</div>
+		{/if}
 	{/if}
+	<FooterBar />
 </main>
 
 <style>
