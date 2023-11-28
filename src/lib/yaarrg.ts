@@ -143,7 +143,7 @@ function get_encoded_assignment(name: string, assignment: string, max_length_nam
     // Returns:
     //   An encoded assignment string.
 
-    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz_';
     const output_alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     // Get a random 3 character seed from the input alphabet.
@@ -151,6 +151,10 @@ function get_encoded_assignment(name: string, assignment: string, max_length_nam
     while (seed.length < 3) {
         seed += input_alphabet[Math.floor(Math.random() * input_alphabet.length)];
     }
+
+    // Convert spaces in name into underscores.
+    name = name.replace(' ', '_');
+    assignment = assignment.replace(' ', '_');
 
     return `${name}/${seed}${encode(assignment, name+seed, max_length_name, input_alphabet, output_alphabet)}`;
 }
@@ -164,7 +168,7 @@ export function get_decoded_assignment(encoded_assignment: string): string {
     // Returns:
     //   The decoded assignment string.
 
-    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz_';
     const output_alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
     const [name, seed_with_encoded_name] = encoded_assignment.split('/');
@@ -172,7 +176,7 @@ export function get_decoded_assignment(encoded_assignment: string): string {
     // We get the seed from the encoded name.
     const seed = seed_with_encoded_name.slice(0, 3);
     const encoded_name = seed_with_encoded_name.slice(3);
-    return decode(encoded_name, name+seed, input_alphabet, output_alphabet);
+    return decode(encoded_name, name+seed, input_alphabet, output_alphabet).replace('_', ' ');
 }
 
 function encode(input: string, seed: string, padded_input_length: number, input_alphabet: string, output_alphabet: string) {
