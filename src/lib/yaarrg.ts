@@ -5,7 +5,6 @@ export const people: Writable<Person[]> = writable([]);
 
 export type Person = {
     name: string;
-    color: string;
     excludes: Person[];
     requires: Person[];
     assignment: Person | null;
@@ -144,10 +143,20 @@ function get_encoded_assignment(name: string, assignment: string, max_length_nam
     // Returns:
     //   An encoded assignment string.
 
-    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz_';
     const output_alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    return `${name}/${encode(assignment, name, max_length_name, input_alphabet, output_alphabet)}`;
+    // Get a random 3 character seed from the input alphabet.
+    let seed = '';
+    while (seed.length < 3) {
+        seed += input_alphabet[Math.floor(Math.random() * input_alphabet.length)];
+    }
+
+    // Convert spaces in name into underscores.
+    name = name.replace(' ', '_');
+    assignment = assignment.replace(' ', '_');
+
+    return `${name}/${seed}${encode(assignment, name+seed, max_length_name, input_alphabet, output_alphabet)}`;
 }
 
 export function get_decoded_assignment(encoded_assignment: string): string {
@@ -159,11 +168,15 @@ export function get_decoded_assignment(encoded_assignment: string): string {
     // Returns:
     //   The decoded assignment string.
 
-    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz';
+    const input_alphabet = 'abcdefghijklmnopqrstuvwxyz_';
     const output_alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    const [name, encoded_name] = encoded_assignment.split('/');
-    return decode(encoded_name, name, input_alphabet, output_alphabet);
+    const [name, seed_with_encoded_name] = encoded_assignment.split('/');
+
+    // We get the seed from the encoded name.
+    const seed = seed_with_encoded_name.slice(0, 3);
+    const encoded_name = seed_with_encoded_name.slice(3);
+    return decode(encoded_name, name+seed, input_alphabet, output_alphabet).replace('_', ' ');
 }
 
 function encode(input: string, seed: string, padded_input_length: number, input_alphabet: string, output_alphabet: string) {

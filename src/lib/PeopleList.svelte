@@ -1,25 +1,16 @@
 <script lang="ts">
+    import AddPersonButton from './AddPersonButton.svelte';
     import PeopleListEntry from './PeopleListEntry.svelte';
-
-    import type { Person } from './yaarrg';
+    import PeopleListHeader from './PeopleListHeader.svelte';
     import { people } from './yaarrg';
-
-    function addPerson() {
-        $people = [...$people, { 
-            name: 'New Person',
-            color: 'red',
-            excludes: [],
-            requires: [],
-            assignment: null,
-            encoded_assignment: null,
-        }];
-        return null;
-    }
 </script>
 
 <div>
-    {#each $people as person}
-        <PeopleListEntry {person} />
-    {/each}
-    <button on:click={addPerson}>Add Person</button>
+    {#if $people.length > 0}
+        <PeopleListHeader />
+        {#each $people as person}
+            <PeopleListEntry {person} />
+        {/each}
+    {/if}
+    <AddPersonButton />
 </div>
