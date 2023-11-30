@@ -13,9 +13,12 @@
     }
 </script>
 
-<div>
+<div id="excludeList">
+    <div id="excludeDesc">
+        Exclude: 
+    </div>
     {#each person.excludes as exclude}
-        <div>
+        <div class="excludee">
             <select bind:value={exclude}>
                 {#each $people as other_person}
                     {#if other_person !== person}
@@ -23,8 +26,58 @@
                     {/if}
                 {/each}
             </select>
-            <button on:click={() => removeExclude(exclude)}>Remove</button>
+            <button class="removeExcludee" on:click={() => removeExclude(exclude)}>
+                <span class="material-symbols-outlined">
+                    delete
+                </span>
+            </button>
         </div>
     {/each}
-    <button on:click={() => addExclude()}>Add Exclude</button>
+    <button on:click={() => addExclude()}>
+        <span class="material-symbols-outlined">
+            add_circle
+        </span>
+    </button>
 </div>
+
+<style>
+    #excludeList {
+        max-width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: center;
+        flex-flow: wrap;
+    }
+    #excludeDesc {
+        margin-right: 0.5em;
+    }
+    .excludee {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        background-color: #666;
+        border-radius: 0.5em;
+        padding: 0.25em;
+    }
+    select {
+        border: none;
+        background-color: inherit;
+        color: inherit;
+        font-size: inherit;
+    }
+    select:hover {
+        border-bottom: 1px solid gray;
+    }
+    select:focus {
+        outline: none;
+        border-bottom: 1px solid white;
+    }
+    button {
+        border: none;
+        background-color: inherit;
+        color: inherit;
+        font-size: inherit;
+    }
+</style>
