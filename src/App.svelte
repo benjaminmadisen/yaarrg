@@ -15,17 +15,34 @@
 
 <main>
 	<HeaderBar />
-	{#if show_assignment}
-		<Assignment />
-	{:else}
-		<Description />
-		<PeopleList />
-		{#if $people.length > 0}
-			<AssignButton />
+	<div id="content">
+		{#if show_assignment}
+			<Assignment />
+		{:else}
+			{#if $people.length > 0}
+				<AssignButton />
+			{:else}
+				<Description />
+			{/if}
+			<PeopleList />
 		{/if}
-	{/if}
+	</div>
 	<FooterBar />
 </main>
 
 <style>
+	main {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		min-height: 100vh;
+		max-width: 840px;
+		margin: 0 auto;
+	}
+	#content {
+		width: 100%;
+        max-width: 40em;
+        margin-left: 2em;
+        margin-right: 2em;
+	}
 </style>
