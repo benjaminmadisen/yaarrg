@@ -8,7 +8,7 @@
     import Description from './lib/Description.svelte';
 	const path_name = window.location.pathname;
 	let show_assignment: boolean = false;
-	if (path_name.length > 1 && path_name.split('/').length == 3) {
+	if (path_name.length > 8 && path_name.split('/').length == 4) {
 		show_assignment = true;
 	}
 </script>

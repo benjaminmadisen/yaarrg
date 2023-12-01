@@ -3,8 +3,8 @@
 
 	const path_name = window.location.pathname;
     let assignment: null | string = null;
-	if (path_name.length > 1 && path_name.split('/').length == 3) {
-		assignment = get_decoded_assignment(path_name.slice(1));
+	if (path_name.length > 8 && path_name.split('/').length == 4) {
+		assignment = get_decoded_assignment(path_name.slice(8));
 	}
 </script>
 
