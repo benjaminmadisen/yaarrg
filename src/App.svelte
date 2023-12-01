@@ -6,9 +6,11 @@
     import Assignment from './lib/Assignment.svelte';
     import FooterBar from './lib/FooterBar.svelte';
     import Description from './lib/Description.svelte';
-	const path_name = window.location.pathname;
+	const search_params = new URLSearchParams(window.location.search);
+	const name = search_params.get('n');
+	const assignment = search_params.get('a');
 	let show_assignment: boolean = false;
-	if (path_name.length > 8 && path_name.split('/').length == 4) {
+	if (name !== null && assignment !== null) {
 		show_assignment = true;
 	}
 </script>

@@ -156,10 +156,10 @@ function get_encoded_assignment(name: string, assignment: string, max_length_nam
     name = name.replace(' ', '_');
     assignment = assignment.replace(' ', '_');
 
-    return `${name}/${seed}${encode(assignment, name+seed, max_length_name, input_alphabet, output_alphabet)}`;
+    return `?n=${name}&a=${seed}${encode(assignment, name+seed, max_length_name, input_alphabet, output_alphabet)}`;
 }
 
-export function get_decoded_assignment(encoded_assignment: string): string {
+export function get_decoded_assignment(name: string, assignment: string): string {
     // Get a decoded assignment string.
     //
     // Args:
@@ -171,11 +171,9 @@ export function get_decoded_assignment(encoded_assignment: string): string {
     const input_alphabet = 'abcdefghijklmnopqrstuvwxyz_';
     const output_alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
-    const [name, seed_with_encoded_name] = encoded_assignment.split('/');
-
     // We get the seed from the encoded name.
-    const seed = seed_with_encoded_name.slice(0, 3);
-    const encoded_name = seed_with_encoded_name.slice(3);
+    const seed = assignment.slice(0, 3);
+    const encoded_name = assignment.slice(3);
     return decode(encoded_name, name+seed, input_alphabet, output_alphabet).replace('_', ' ');
 }
 

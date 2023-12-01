@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { get_decoded_assignment } from './yaarrg';
 
-	const path_name = window.location.pathname;
-    let assignment: null | string = null;
-	if (path_name.length > 8 && path_name.split('/').length == 4) {
-		assignment = get_decoded_assignment(path_name.slice(8));
+	const search_params = new URLSearchParams(window.location.search);
+	const name = search_params.get('n');
+	const assignment_code = search_params.get('a');
+    let assignment: string | null = null;
+	if (name !== null && assignment_code !== null) {
+		assignment = get_decoded_assignment(name, assignment_code);
 	}
 </script>
 
