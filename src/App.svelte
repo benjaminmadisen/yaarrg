@@ -4,6 +4,7 @@
 	import AssignButton from './lib/AssignButton.svelte';
     import HeaderBar from './lib/HeaderBar.svelte';
     import Assignment from './lib/Assignment.svelte';
+	import AdvancedOptions from './lib/AdvancedOptions.svelte';
     import FooterBar from './lib/FooterBar.svelte';
     import Description from './lib/Description.svelte';
 	const search_params = new URLSearchParams(window.location.search);
@@ -27,6 +28,9 @@
 				<Description />
 			{/if}
 			<PeopleList />
+			{#if $people.length > 0}
+				<AdvancedOptions />
+			{/if}
 		{/if}
 	</div>
 	<FooterBar />

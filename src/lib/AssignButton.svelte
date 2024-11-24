@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { people, assign_people } from './yaarrg';
+    import { people, assignment_cycles, assign_people } from './yaarrg';
 
     function run_assignment() {
-        $people = assign_people($people);
+        if ($assignment_cycles !== null && $assignment_cycles > 0) {
+            $people = assign_people($people, $assignment_cycles);
+        }
     }
 </script>
 

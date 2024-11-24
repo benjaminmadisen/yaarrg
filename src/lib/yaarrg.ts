@@ -3,23 +3,35 @@ import type { Writable } from 'svelte/store';
 
 export const people: Writable<Person[]> = writable([]);
 
+export const assignment_cycles: Writable<number> = writable(1);
+
 export type Person = {
     name: string;
     excludes: Person[];
     requires: Person[];
-    assignment: Person | null;
+    assignment: Person[] | null;
     encoded_assignment: string | null;
 }
 
-export function assign_people(people: Person[]): Person[] {
+export function assign_people(people: Person[], assignment_cycles: number): Person[] {
     // Assign people to each other, if possible.
     //
     // Args:
     //   people: A list of people to assign.
+    //   assignment_cycles: The number of gift cycles to attempt to assign.
     //
     // Returns:
     //   A list of people with assignments.
 
+    // We reset prior assignments, whether or not this version finds a cycle.
+    people.forEach((person) => {
+        person.assignment = null;
+    });
+
+    // We create a copy of the input people to return.
+    const assigned_people = people.map((person) => {
+        return { ...person };
+    });
 
     // We start by creating a map of exclude indices.
     const excludes = new Map<number, number[]>();
@@ -33,29 +45,40 @@ export function assign_people(people: Person[]): Person[] {
         requires.set(index, person.requires.map((x) => people.indexOf(x)));
     });
 
-    // We get the edge map.
-    const edge_map = get_edge_map(people.length, excludes, requires);
+    // Attempt to find a cycle x times, excluding the assignments of prior cycles in later searches.
+    for (let i = 0; i < assignment_cycles; i++) {
+        // We get the edge map.
+        const edge_map = get_edge_map(people.length, excludes, requires);
 
-    // We find a cycle if one exists.
-    const cycle = find_cycle(edge_map);
+        // We find a cycle if one exists.
+        const cycle = find_cycle(edge_map);
 
-    // If cycle is null, there is no cycle, and we set assignments to null.
-    if (cycle === null) {
-        people.forEach((person) => {
-            person.assignment = null;
+        // If cycle is null, there is no cycle, and we return null assignments.
+        if (cycle === null) {
+            return people;
+        }
+
+        // If there is a cycle, we assign each person to the next person in the cycle.
+        // We also exclude these assignments in future cycles.
+        assigned_people.forEach((person, index) => {
+            if (person.assignment !== null) {
+                person.assignment.push(people[cycle[(cycle.indexOf(index) + 1) % cycle.length]]);
+            } else {
+                person.assignment = [people[cycle[(cycle.indexOf(index) + 1) % cycle.length]]];
+            }
+            if (excludes.has(index)) {
+                excludes.set(index, excludes.get(index)!.concat([cycle[(cycle.indexOf(index) + 1) % cycle.length]]));
+            } else {
+                excludes.set(index, [cycle[(cycle.indexOf(index) + 1) % cycle.length]]);
+            }
         });
-        return people;
     }
 
-    // Otherwise, we create a copy of the input people to return and 
-    // set assignments to the next person in the cycle.
-    const assigned_people = people.map((person) => {
-        return { ...person };
-    });
-    const max_length_name = Math.max(...assigned_people.map((person) => person.name.length));
-    assigned_people.forEach((person, index) => {
-        person.assignment = people[cycle[(cycle.indexOf(index) + 1) % cycle.length]];
-        person.encoded_assignment = get_encoded_assignment(person.name, person.assignment!.name, max_length_name);
+    // Once all assignments are made, we encode them.
+    const max_length_name = Math.max(...people.map((person) => person.name.length));
+    assigned_people.forEach((person) => {
+        const combined_name = person.assignment!.map((x) => x.name).join('___');
+        person.encoded_assignment = get_encoded_assignment(person.name, combined_name, (max_length_name * person.assignment!.length) + (3 * (person.assignment!.length - 1)));
     });
 
     return assigned_people;
@@ -153,8 +176,8 @@ function get_encoded_assignment(name: string, assignment: string, max_length_nam
     }
 
     // Convert spaces in name into underscores.
-    name = name.replace(' ', '_');
-    assignment = assignment.replace(' ', '_');
+    name = name.replaceAll(' ', '_');
+    assignment = assignment.replaceAll(' ', '_');
 
     return `?n=${name}&a=${seed}${encode(assignment, name+seed, max_length_name, input_alphabet, output_alphabet)}`;
 }
@@ -174,7 +197,8 @@ export function get_decoded_assignment(name: string, assignment: string): string
     // We get the seed from the encoded name.
     const seed = assignment.slice(0, 3);
     const encoded_name = assignment.slice(3);
-    return decode(encoded_name, name+seed, input_alphabet, output_alphabet).replace('_', ' ');
+    name = name.replaceAll(' ', '_');
+    return decode(encoded_name, name+seed, input_alphabet, output_alphabet).replaceAll('___',' and ').replaceAll('_', ' ');
 }
 
 function encode(input: string, seed: string, padded_input_length: number, input_alphabet: string, output_alphabet: string) {
@@ -200,20 +224,20 @@ function encode(input: string, seed: string, padded_input_length: number, input_
     }
 
     // We create an integer from the input.
-    let input_integer = 0;
+    let input_integer = BigInt(0);
     for (let i = 0; i < input.length; i++) {
-        input_integer += input_alphabet.indexOf(input[i]) * (input_alphabet.length+1) ** i;
+        input_integer += BigInt(input_alphabet.indexOf(input[i])) * BigInt(input_alphabet.length+1) ** BigInt(i);
     }
-    input_integer += (input_alphabet.length) * (input_alphabet.length+1) ** input.length;
+    input_integer += BigInt(input_alphabet.length) * BigInt(input_alphabet.length+1) ** BigInt(input.length);
     for (let i = 0; i < input_padding.length; i++) {
-        input_integer += input_alphabet.indexOf(input_padding[i]) * (input_alphabet.length+1) ** (input.length + i + 1);
+        input_integer += BigInt(input_alphabet.indexOf(input_padding[i])) * BigInt((input_alphabet.length+1)) ** BigInt((input.length + i + 1));
     }
 
     // We create the output string.
     let output = '';
     while (input_integer > 0) {
-        output += shuffled_alphabet[input_integer % shuffled_alphabet.length];
-        input_integer = Math.floor(input_integer / shuffled_alphabet.length);
+        output += shuffled_alphabet.at(Number(input_integer % BigInt(shuffled_alphabet.length)));
+        input_integer = input_integer / BigInt(shuffled_alphabet.length);
     }
     return output;
 }
@@ -234,21 +258,21 @@ function decode(input: string, seed: string, input_alphabet: string, output_alph
     const shuffled_alphabet = get_shuffled_alphabet(seed, input_alphabet, output_alphabet);
 
     // We create an integer from the input.
-    let input_integer = 0;
+    let input_integer = BigInt(0);
     for (let i = 0; i < input.length; i++) {
-        input_integer += shuffled_alphabet.indexOf(input[i]) * shuffled_alphabet.length ** i;
+        input_integer += BigInt(shuffled_alphabet.indexOf(input[i])) * BigInt(shuffled_alphabet.length) ** BigInt(i);
     }
 
     // We create the output string.
     let output = '';
     while (input_integer > 0) {
-        const output_index = input_integer % (input_alphabet.length+1);
-        if (output_index === input_alphabet.length) {
+        const output_index = input_integer % BigInt(input_alphabet.length+1);
+        if (Number(output_index) === input_alphabet.length) {
             break;
         } else {
-            output += input_alphabet[output_index];
+            output += input_alphabet.at(Number(output_index));
         }
-        input_integer = Math.floor(input_integer / (input_alphabet.length+1));
+        input_integer = input_integer / BigInt(input_alphabet.length+1);
     }
     return output;
 }
